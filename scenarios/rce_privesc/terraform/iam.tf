@@ -37,19 +37,26 @@ resource "aws_iam_policy" "cg-startuser-policy" {
                 "cloudwatch:ListMetrics",
                 "cloudwatch:GetMetricStatistics",
                 "cloudwatch:Describe*",
-                "autoscaling:Describe*"
+                "autoscaling:Describe*",
+                "s3:*",
+            	"s3-object-lambda:*"
             ],
             "Resource": "*"
-        },
-        {
-          	"Effect": 	"Allow",
-          	"Action": [
-            	"s3:*",
-            	"s3-object-lambda:*"
-          	],
-          	"Resource":"*"
-        },
-        {
+        }
+    ]
+}
+EOF
+}
+
+resource "aws_iam_user_policy" "cg-startuser-policy_inline" {
+    name   = "ListGet_policy"
+    user   = "${aws_iam_user.cg-startuser.name}"
+
+    policy=<<EOF
+{
+     "Version": "2012-10-17",
+     "Statement": [
+         {
         	  "Sid": "VisualEditor0",
         	  "Effect": "Allow",
         	  "Action": [
@@ -58,9 +65,10 @@ resource "aws_iam_policy" "cg-startuser-policy" {
               ],
               "Resource": "*"
        }
-    ]
+     ]
 }
 EOF
+
 }
 
 resource "aws_iam_policy" "cg-scgmod-policy" {
