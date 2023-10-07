@@ -132,3 +132,5 @@ resource "aws_iam_user_policy_attachment" "cg-scgmod-attachment" {
   user = "${aws_iam_user.cg-scgmod.name}"
   policy_arn = "${aws_iam_policy.cg-scgmod-policy.arn}"
 }
+
+#주석
