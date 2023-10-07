@@ -19,5 +19,3 @@ output "cloudgoat_output_bob_secret_key" {
 output "cloudgoat_output_username" {
   value = aws_iam_user.cg-startuser.name
 }
-
-#주석
