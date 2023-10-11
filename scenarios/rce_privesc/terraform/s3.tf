@@ -33,7 +33,7 @@ resource "aws_s3_bucket_ownership_controls" "s3_bucket_acl_ownership" {
 }
 
 resource "aws_s3_bucket_object" "cg-scgmod-credentials" {
-  bucket = aws_s3_bucket.cg-cardholder-data-bucket.id
+  bucket = "${aws_s3_bucket.cg-cardholder-data-bucket.id}"
   key    = "secret/scgmod_accessKeys.txt"
   source = "../assets/scgmod_accessKeys.txt"
 }
