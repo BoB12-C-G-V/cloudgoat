@@ -27,16 +27,6 @@ resource "aws_subnet" "cg-public-subnet-1" {
       Scenario = "${var.scenario-name}"
   }
 }
-resource "aws_subnet" "cg-public-subnet-2" {
-  availability_zone = "${var.region}b"
-  cidr_block = "10.10.20.0/24"
-  vpc_id = "${aws_vpc.cg-vpc.id}"
-  tags = {
-      Name = "CloudGoat ${var.cgid} Public Subnet #2"
-      Stack = "${var.stack-name}"
-      Scenario = "${var.scenario-name}"
-  }
-}
 #Public Subnet Routing Table
 resource "aws_route_table" "cg-public-subnet-route-table" {
   route {
@@ -53,9 +43,5 @@ resource "aws_route_table" "cg-public-subnet-route-table" {
 #Public Subnets Routing Associations
 resource "aws_route_table_association" "cg-public-subnet-1-route-association" {
   subnet_id = "${aws_subnet.cg-public-subnet-1.id}"
-  route_table_id = "${aws_route_table.cg-public-subnet-route-table.id}"
-}
-resource "aws_route_table_association" "cg-public-subnet-2-route-association" {
-  subnet_id = "${aws_subnet.cg-public-subnet-2.id}"
   route_table_id = "${aws_route_table.cg-public-subnet-route-table.id}"
 }

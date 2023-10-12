@@ -31,9 +31,9 @@ resource "aws_iam_instance_profile" "cg-ec2-instance-profile" {
 }
 
 #Security Groups
-resource "aws_security_group" "cg-ec2-ssh-security-group" {
-  name = "cg-ec2-ssh-${var.cgid}"
-  description = "CloudGoat ${var.cgid} Security Group for EC2 Instance over SSH"
+resource "aws_security_group" "cg-ec2-security-group" {
+  name = "cg-ec2-${var.cgid}"
+  description = "CloudGoat ${var.cgid} Security Group for EC2 Instance"
   vpc_id = "${aws_vpc.cg-vpc.id}"
 
   ingress {
@@ -78,8 +78,7 @@ resource "aws_instance" "ec2-vulnerable-proxy-server" {
     subnet_id = "${aws_subnet.cg-public-subnet-1.id}"
     associate_public_ip_address = true
     vpc_security_group_ids = [
-        "${aws_security_group.cg-ec2-ssh-security-group.id}",
-#        "${aws_security_group.cg-ec2-http-security-group.id}"
+        "${aws_security_group.cg-ec2-security-group.id}",
     ]
     key_name = "${aws_key_pair.cg-ec2-key-pair.key_name}"
     root_block_device {
@@ -87,18 +86,23 @@ resource "aws_instance" "ec2-vulnerable-proxy-server" {
         volume_size = 8
         delete_on_termination = true
     }
+    provisioner "file" {
+        source = "../assets/index.php"
+        destination = "/home/ubuntu/index.php"
+        connection {
+          type = "ssh"
+          user = "ubuntu"
+          private_key = "${file(var.ssh-private-key-for-ec2)}"
+          host = self.public_ip
+        }
+      }
     user_data = <<-EOF
     #!/bin/bash
 
     sudo apt-get update -y && sudo apt-get upgrade -y
     sudo apt-get install apache2 php libapache2-mod-php -y
+    sudo mv /home/ubuntu/index.php /var/www/html/
     sudo rm -rf /var/www/html/index.html
-    echo -e '<html>\n<h1>This is RCE Page</h1>\n<br>' >> /var/www/html/index.php
-    echo '<h3>You can use "cmd" parameter on url <br>Good Luck!</h3>' >> /var/www/html/index.php
-    echo '<?php' >> /var/www/html/index.php
-    echo 'if(isset($_GET["cmd"])) {' >> /var/www/html/index.php
-    echo 'system($_GET["cmd"]);' >> /var/www/html/index.php
-    echo -e '}\n?>\n</html>' >> /var/www/html/index.php
     systemctl start apache2.service systemctl enable apache-service.service
   EOF
 
