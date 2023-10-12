@@ -1,5 +1,5 @@
 resource "aws_iam_user" "cacique" {
-  name = "cacique"
+  name = "cg-cacique-${var.cgid}"
   tags = {
     deployment_profile = var.profile
     Stack = var.stack-name
@@ -18,16 +18,6 @@ resource "aws_iam_user" "trail-manager" {
 
 resource "aws_iam_access_key" "cacique" {
   user = aws_iam_user.cacique.name
-}
-
-output "access_key_id" {
-  value     = aws_iam_access_key.cacique.id
-  sensitive = true
-}
-
-output "secret_access_key" {
-  value     = aws_iam_access_key.cacique.secret
-  sensitive = true
 }
 
 resource "aws_iam_user_policy_attachment" "trail-manager-policy" {
