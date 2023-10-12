@@ -1,3 +1,11 @@
+#Secret S3 Bucket
+locals {
+  # Ensure the bucket suffix doesn't contain invalid characters
+  # "Bucket names can consist only of lowercase letters, numbers, dots (.), and hyphens (-)."
+  # (per https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html)
+  bucket_suffix = replace(var.cgid, "/[^a-z0-9-.]/", "-")
+}
+
 resource "aws_cloudtrail" "cg-ecs-task-shell-trail" {
   name                          = "cg-ecs-task-shell-${var.cgid}"
   s3_bucket_name                = aws_s3_bucket.s3_bucket.id
@@ -6,7 +14,7 @@ resource "aws_cloudtrail" "cg-ecs-task-shell-trail" {
 }
 
 resource "aws_s3_bucket" "s3_bucket" {
-  bucket        = "cg-trail-bucket-${var.cgid}"
+  bucket        = "cg-trail-bucket-${local.bucket_suffix}"
   force_destroy = true
 }
 
