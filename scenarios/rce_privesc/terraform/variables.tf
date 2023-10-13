@@ -20,7 +20,7 @@ variable "ssh-public-key-for-ec2" {
 }
 #SSH Private Key
 variable "ssh-private-key-for-ec2" {
-  default = "../cloudgoat"
+  default = "~/.ssh/id_rsa"
 }
 #Stack Name
 variable "stack-name" {
