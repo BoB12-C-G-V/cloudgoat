@@ -28,10 +28,14 @@ resource "aws_iam_policy" "ec2_creator" {
           "ec2:StartInstances",
           "ec2:StopInstances",
           "ec2:TerminateInstances",
+          "ec2:CreateVolume",
           "ec2:CreateTags",
           "ec2:AttachVolume",
           "ec2:Describe*",
-          "ec2:RegisterImage"
+          "ssm:SendCommand",
+          "ssm:ResumeSession",
+          "ssm:TerminateSession",
+          "ssm:StartSession"
         ],
         Resource = "*"
       }
@@ -40,16 +44,12 @@ resource "aws_iam_policy" "ec2_creator" {
 }
 
 # ec2_access_role 정책 연결
-# ec2생성 및 접근이 가능해짐
-resource "aws_iam_role_policy_attachment" "ec2_role_policy_attachment" {
-  policy_arn = aws_iam_policy.ec2_creator.arn
-  role       = aws_iam_role.ec2_access_role.name
-}
-
 resource "aws_iam_user_policy_attachment" "ec2_poclicy_attachment" {
   user       = aws_iam_user.cg-block.name
   policy_arn = aws_iam_policy.ec2_creator.arn
 }
+
+
 
 #==========End IAM ===================
 
@@ -99,4 +99,31 @@ resource "aws_iam_user_policy_attachment" "AdministratorAccessAttachment" {
 #==========End Admin IAM =============
 
 
+
+#==========EC2 IAM Role ==============
+#EC2 IAM role
+resource "aws_iam_role" "ec2_access_role" {
+  name = "ec2_access_role"
+  path = "/"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Action = "sts:AssumeRole",
+      Effect = "Allow",
+      Principal = {
+        Service = "ec2.amazonaws.com"
+      }
+    }]
+  })
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+
+resource "aws_iam_instance_profile" "ec2_access_profile" {
+  name = "awsIamEc2AccessProfile"
+  role = aws_iam_role.ec2_access_role.name
+}
 

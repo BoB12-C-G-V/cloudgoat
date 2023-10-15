@@ -7,7 +7,3 @@ output "cloudgoat_output_block_secret_key" {
   sensitive = true
 }
 
-output "cloudgoat_output_username" {
-  value = aws_iam_user.cg-block.name
-}
-

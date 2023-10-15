@@ -18,22 +18,20 @@ resource "aws_instance" "my_instance" {
   user_data = <<-EOF
     #!/bin/bash
     # Wait for the EBS volume to be available
-    while [ ! -e /dev/xvdf ]; do sleep 1; done
+    while [ ! -e /dev/sdb ]; do sleep 1; done
 
     # Create a filesystem on the EBS volume
-    mkfs -t ext4 /dev/xvdf
+    mkfs -t ext4 /dev/sdb
 
     # Mount the EBS volume
     mkdir /mnt/mydata
-    mount /dev/xvdf /mnt/mydata
+    mount /dev/sdb /mnt/mydata
 
     # Add an entry to /etc/fstab for persistent mounting
-    echo '/dev/xvdf /mnt/mydata ext4 defaults 0 0' >> /etc/fstab
-
+    echo '/dev/sdb /mnt/mydata ext4 defaults 0 0' >> /etc/fstab
 
     echo "Hello IAM" > /mnt/mydata/hello.txt
     EOF
-
 }
 
 
@@ -45,32 +43,17 @@ resource "aws_key_pair" "bob_key_pair" {
 
 #EBS연결
 resource "aws_volume_attachment" "ebs_att" {
-  device_name = "/dev/xvdf"
+  device_name = "/dev/sdb"
   volume_id   = aws_ebs_volume.example_ebs_volume.id
   instance_id = aws_instance.my_instance.id
 }
 
+# EBS 스냅샷 생성
+resource "aws_ebs_snapshot" "example_snapshot" {
+  volume_id = aws_ebs_volume.example_ebs_volume.id
+  tags = {
+    Name = "Hello IAM?"
+  }
 
-
-#EC2 IAM role
-resource "aws_iam_role" "ec2_access_role" {
-  name = "ec2_access_role"
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [{
-      Action = "sts:AssumeRole",
-      Effect = "Allow",
-      Principal = {
-        Service = "ec2.amazonaws.com"
-      }
-    }]
-  })
+  depends_on = [aws_instance.my_instance, aws_volume_attachment.ebs_att,aws_instance.ec2FORfree]
 }
-
-
-resource "aws_iam_instance_profile" "ec2_access_profile" {
-  name = "awsIamEc2AccessProfile"
-  role = aws_iam_role.ec2_access_role.name
-}
-
-
