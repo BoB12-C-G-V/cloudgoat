@@ -24,10 +24,6 @@ resource "aws_iam_policy" "ec2_creator" {
       {
         Effect = "Allow",
         Action = [
-          "ec2:RunInstances",
-          "ec2:StartInstances",
-          "ec2:StopInstances",
-          "ec2:TerminateInstances",
           "ec2:CreateVolume",
           "ec2:CreateTags",
           "ec2:AttachVolume",
@@ -35,7 +31,8 @@ resource "aws_iam_policy" "ec2_creator" {
           "ssm:SendCommand",
           "ssm:ResumeSession",
           "ssm:TerminateSession",
-          "ssm:StartSession"
+          "ssm:StartSession",
+          "ssm:DescribeInstanceInformation"
         ],
         Resource = "*"
       }
