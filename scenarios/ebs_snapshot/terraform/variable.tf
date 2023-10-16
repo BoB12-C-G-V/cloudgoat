@@ -1,34 +1,38 @@
-#Required: AWS Profile
 variable "profile" {
-
+  description = "The AWS profile to use."
+  type        = string
 }
 
-variable "base_profile" {}
 #Required: AWS Region
 variable "region" {
-
+  description = "The AWS region to deploy resources to."
+  default     = "us-east-1"
+  type        = string
 }
 #Required: CGID Variable for unique naming
-variable "cgid" {}
-variable "ami" {}
-variable "instance_type" {}
-
-#Required: User's Public IP Address(es)
-variable "cg_whitelist" {
-  type    = list(string)
-  default = []
+variable "cgid" {
+  description = "CGID variable for unique naming."
+  type        = string
+}
+variable "ami" {
+  default = "ami-041feb57c611358bd"
+}
+variable "instance_type" {
+  default = "t2.micro"
 }
 
-#Stack Name
+variable "cg_whitelist" {
+  description = "User's public IP address(es)."
+  type        = list(string)
+}
+
 variable "stack-name" {
-  default = "CloudGoat"
+  description = "Name of the stack."
+  default     = "CloudGoat"
+  type        = string
 }
 variable "scenario-name" {
-  default = "ec2_sg_change"
-}
-
-variable "root_password" {
-  default = "1234"
+  default = "Public_EBS_Snapshot"
 }
 
 

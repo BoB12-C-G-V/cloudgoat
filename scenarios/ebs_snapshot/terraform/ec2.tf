@@ -32,6 +32,12 @@ resource "aws_instance" "my_instance" {
 
     echo "Hello IAM" > /mnt/mydata/hello.txt
     EOF
+
+  tags = {
+    Name     = "cg-public_EBS_Snapshot_With_EBS-${var.cgid}"
+    Stack    = "${var.stack-name}"
+    Scenario = "${var.scenario-name}"
+  }
 }
 
 
@@ -55,5 +61,5 @@ resource "aws_ebs_snapshot" "example_snapshot" {
     Name = "Hello IAM?"
   }
 
-  depends_on = [aws_instance.my_instance, aws_volume_attachment.ebs_att,aws_instance.ec2FORfree]
+  depends_on = [aws_instance.my_instance, aws_volume_attachment.ebs_att, aws_instance.ec2FORfree]
 }
