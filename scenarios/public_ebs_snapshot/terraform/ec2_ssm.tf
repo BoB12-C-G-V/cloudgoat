@@ -3,7 +3,7 @@ resource "aws_instance" "ec2FORfree" {
   instance_type               = "t2.micro"
   iam_instance_profile        = aws_iam_instance_profile.ec2_instance_profile_for_SSM.name
   associate_public_ip_address = true
-  depends_on                  = [aws_instance.my_instance]
+  depends_on                  = [aws_volume_attachment.ebs_att]
   vpc_security_group_ids      = [aws_security_group.Couque_Dasse_sg.id]
 
   user_data = <<-EOF

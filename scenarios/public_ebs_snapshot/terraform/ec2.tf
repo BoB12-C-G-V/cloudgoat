@@ -30,7 +30,7 @@ resource "aws_instance" "my_instance" {
     # Add an entry to /etc/fstab for persistent mounting
     echo '/dev/sdb /mnt/mydata ext4 defaults 0 0' >> /etc/fstab
 
-    echo "Hello IAM" > /mnt/mydata/hello.txt
+    echo "cg-secret-string" > /mnt/mydata/secret_string.txt
     EOF
 
   tags = {
@@ -52,6 +52,7 @@ resource "aws_volume_attachment" "ebs_att" {
   device_name = "/dev/sdb"
   volume_id   = aws_ebs_volume.example_ebs_volume.id
   instance_id = aws_instance.my_instance.id
+  depends_on  = [aws_instance.my_instance]
 }
 
 # EBS 스냅샷 생성
@@ -61,5 +62,5 @@ resource "aws_ebs_snapshot" "example_snapshot" {
     Name = "Hello IAM?"
   }
 
-  depends_on = [aws_instance.my_instance, aws_volume_attachment.ebs_att, aws_instance.ec2FORfree]
+  depends_on = [aws_instance.ec2FORfree]
 }
