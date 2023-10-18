@@ -4,7 +4,7 @@
 
 **Difficulty:** Easy
 
-**Command:** `$ ./cloudgoat.py create rce_rce_privesc`
+**Command:** `$ ./cloudgoat.py create rce_privesc`
 
 ## Scenario Resources
 
@@ -32,7 +32,7 @@ The attacker is divided by ec2 and s3 at the first entry point. ec2 has a web se
 ![Scenario Route(s)](./rce_privesc.png)
 
 ## Route Walkthrough - IAM User “cg-startuser”
-
+[Eng]
 1. Start as a regular user. Web applications and s3 returning to ec2 exist. 
 2. The user connects to the address found, but cannot connect.
 3. You can see that network access is blocked by the security group.
@@ -40,6 +40,7 @@ The attacker is divided by ec2 and s3 at the first entry point. ec2 has a web se
 5. The attacker accesses the web page again. → Firewall rules apply and attackers can access
 6. I noticed that the RCE vulnerability was exploding, and I accessed the metadata with the credentials of the admin user.
 
+[Kor]
 1. 일반 사용자로 시작. ec2로 돌아가는 웹 어플리케이션과 s3가 존재함. 
 2. 사용자는 찾은 주소로 접속을 하지만 접속이 되지 않음.
 3. security group(방화벽)에 의해 네트워크 접근이 막힌 것을 알 수있음.
