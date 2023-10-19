@@ -13,7 +13,7 @@
 
 # Scenario **Schematicization**
 
-![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/20e97f8e-ada7-4ab6-8e8f-08d05d825976/190831e4-8402-4c8c-bfb5-0a5b6b1429f2/Untitled.png)
+![GuardDuty bypass with ECS revshell](https://github.com/BoB12-C-G-V/cloudgoat/assets/55736240/ef4704c6-7ba2-4044-b88d-eeb7af4b0fc7)
 
 # Scenario Start
 
