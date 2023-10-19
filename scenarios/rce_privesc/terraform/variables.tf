@@ -16,11 +16,11 @@ variable "cg_whitelist" {
 }
 #SSH Public Key
 variable "ssh-public-key-for-ec2" {
-  default = "~/.ssh/id_rsa.pub"
+  default = "../cloudgoat.pub"
 }
 #SSH Private Key
 variable "ssh-private-key-for-ec2" {
-  default = "~/.ssh/id_rsa"
+  default = "../cloudgoat"
 }
 #Stack Name
 variable "stack-name" {
