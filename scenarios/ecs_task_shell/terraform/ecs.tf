@@ -118,10 +118,19 @@ resource "aws_ecs_task_definition" "web_task" {
   container_definitions = jsonencode([{
     name  = "cg-ssrf-web-${var.cgid}",
     image = "3iuy/ssrf-php-alpine",
+
     portMappings = [{
       containerPort = 80,
       hostPort      = 80,
-    }]
+    }],
+
+    healthCheck = {
+      command     = ["CMD-SHELL", "curl -f http://localhost/ || exit 1"],
+      interval    = 30,
+      timeout     = 5,
+      retries     = 3,
+      startPeriod = 30
+    }
   }])
 }
 
