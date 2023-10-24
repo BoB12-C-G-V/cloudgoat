@@ -1,23 +1,25 @@
-resource "aws_iam_role" "iam_role" {
+resource "aws_iam_role" "ec2_role" {
   name = "cg-web-role-${var.cgid}"
   tags = {
     deployment_profile = var.profile
-    Stack = var.stack-name
-    Scenario = var.scenario-name
+    Stack              = var.stack-name
+    Scenario           = var.scenario-name
   }
 
-  managed_policy_arns = ["arn:aws:iam::aws:policy/AmazonS3FullAccess"]
+  managed_policy_arns = [
+    "arn:aws:iam::aws:policy/AmazonS3FullAccess",
+  "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"]
 
   inline_policy {
-    name   = "cg-web-role-policy-${var.cgid}"
+    name = "cg-web-role-policy-${var.cgid}"
     policy = jsonencode({
-      "Version": "2012-10-17",
-      "Statement": [
+      "Version" : "2012-10-17",
+      "Statement" : [
         {
-          "Sid": "VisualEditor0",
-          "Effect": "Allow",
-          "Resource": "*",
-          "Action": [
+          "Sid" : "VisualEditor0",
+          "Effect" : "Allow",
+          "Resource" : "*",
+          "Action" : [
             "iam:PassRole",
             "iam:Get*",
             "ec2:DescribeInstances",
@@ -65,13 +67,13 @@ resource "aws_iam_role" "lambda_role" {
   ]
 
   assume_role_policy = jsonencode({
-    "Version": "2012-10-17",
-    "Statement": [
+    "Version" : "2012-10-17",
+    "Statement" : [
       {
-        "Action": "sts:AssumeRole",
-        "Effect": "Allow",
-        "Principal": {
-          "Service": "lambda.amazonaws.com"
+        "Action" : "sts:AssumeRole",
+        "Effect" : "Allow",
+        "Principal" : {
+          "Service" : "lambda.amazonaws.com"
         }
       }
     ]

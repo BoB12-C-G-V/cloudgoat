@@ -31,3 +31,9 @@ variable "scenario-name" {
   default     = "ecs_task_shell"
   type        = string
 }
+
+variable "user_email" {
+  description = "Once guardduty detect you, a mail will be sent to you"
+  type        = string
+}
+

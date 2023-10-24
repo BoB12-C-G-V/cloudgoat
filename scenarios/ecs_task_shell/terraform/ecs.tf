@@ -1,10 +1,15 @@
 resource "aws_ecs_cluster" "cluster" {
   name = "cg-cluster-${var.cgid}"
+}
 
-  setting {
-    name  = "containerInsights"
-    value = "enabled"
-  }
+resource "aws_ecs_cluster_capacity_providers" "providers" {
+  cluster_name = aws_ecs_cluster.cluster.name
+
+  capacity_providers = [
+    "FARGATE",
+    "FARGATE_SPOT",
+    aws_ecs_capacity_provider.capacity_provider.name
+  ]
 }
 
 resource "aws_ecs_capacity_provider" "capacity_provider" {
@@ -23,54 +28,58 @@ resource "aws_ecs_capacity_provider" "capacity_provider" {
   }
 }
 
-resource "aws_ecs_cluster_capacity_providers" "providers" {
-  cluster_name = aws_ecs_cluster.cluster.name
-  capacity_providers = [aws_ecs_capacity_provider.capacity_provider.name]
-}
-
-data "aws_availability_zones" "available" {
-  state = "available"
-}
-
 resource "aws_autoscaling_group" "ecs" {
   name = "cg-asg-${var.cgid}"
-  desired_capacity     = 1
-  max_size             = 1
-  min_size             = 1
-  launch_configuration = aws_launch_configuration.ecs_asg_template.id
-  availability_zones = data.aws_availability_zones.available.names
+
+  desired_capacity    = 1
+  max_size            = 1
+  min_size            = 1
+  vpc_zone_identifier = data.aws_subnets.all_subnets.ids
+
+  launch_template {
+    id      = aws_launch_template.template.id
+    version = "$Latest"
+  }
 
   lifecycle {
     create_before_destroy = true
   }
 }
 
-resource "aws_launch_configuration" "ecs_asg_template" {
-  name          = "cg-ec2-configuration-${var.cgid}"
+resource "aws_launch_template" "template" {
+  name_prefix   = "cg-launch-template-${var.cgid}"
   image_id      = data.aws_ami.latest_amazon_linux.id
   instance_type = "t2.micro"
-  security_groups = [aws_security_group.allow_http.id]
-  iam_instance_profile = aws_iam_instance_profile.profile.name
+
+  iam_instance_profile {
+    name = aws_iam_instance_profile.profile.name
+  }
+
+  network_interfaces {
+    associate_public_ip_address = true
+    security_groups             = [aws_security_group.allow_http.id]
+  }
 
   metadata_options {
     http_tokens = "optional"
-    http_endpoint = "enabled"
   }
 
-  user_data = <<-EOF
-              #!/bin/bash
-              echo ECS_CLUSTER=${aws_ecs_cluster.cluster.name} >> /etc/ecs/ecs.config
-              EOF
+  user_data = base64encode(
+    <<EOF
+#!/bin/bash
+echo ECS_CLUSTER=${aws_ecs_cluster.cluster.name} >> /etc/ecs/ecs.config;
+EOF
+  )
 }
 
 resource "aws_iam_instance_profile" "profile" {
   name = "cg-ec2-role-${var.cgid}"
-  role = aws_iam_role.iam_role.name
+  role = aws_iam_role.ec2_role.name
 }
 
 resource "aws_security_group" "allow_http" {
   name        = "cg-group-${var.cgid}"
-  description = "Allow inbound traffic on port 80 from your IP"
+  description = "Allow inbound traffic on port 80 from whitelist IP"
 
   ingress {
     from_port   = 80
@@ -121,7 +130,7 @@ data "aws_ami" "latest_amazon_linux" {
 
   filter {
     name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+    values = ["amzn2-ami-ecs-hvm-*-x86_64-ebs"]
   }
 
   filter {
@@ -130,4 +139,15 @@ data "aws_ami" "latest_amazon_linux" {
   }
 
   owners = ["amazon"]
+}
+
+data "aws_vpc" "default" {
+  default = true
+}
+
+data "aws_subnets" "all_subnets" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
 }

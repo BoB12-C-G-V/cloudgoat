@@ -9,6 +9,6 @@ resource "aws_cloudwatch_event_rule" "guardduty_events" {
 }
 
 resource "aws_cloudwatch_event_target" "ecs_event_target" {
-  rule      = aws_cloudwatch_event_rule.guardduty_events.name
-  arn       = aws_lambda_function.guardduty_lambda.arn
+  rule = aws_cloudwatch_event_rule.guardduty_events.name
+  arn  = aws_lambda_function.guardduty_lambda.arn
 }
