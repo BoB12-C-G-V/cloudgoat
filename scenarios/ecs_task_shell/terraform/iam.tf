@@ -1,55 +1,79 @@
-resource "aws_iam_user" "cacique" {
-  name = "cg-cacique-${var.cgid}"
+resource "aws_iam_role" "iam_role" {
+  name = "cg-web-role-${var.cgid}"
   tags = {
     deployment_profile = var.profile
     Stack = var.stack-name
     Scenario = var.scenario-name
   }
+
+  managed_policy_arns = ["arn:aws:iam::aws:policy/AmazonS3FullAccess"]
+
+  inline_policy {
+    name   = "cg-web-role-policy-${var.cgid}"
+    policy = jsonencode({
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "VisualEditor0",
+          "Effect": "Allow",
+          "Resource": "*",
+          "Action": [
+            "iam:PassRole",
+            "iam:Get*",
+            "ec2:DescribeInstances",
+            "iam:List*",
+            "ecs:RunTask",
+            "ecs:Describe*",
+            "ecs:RegisterTaskDefinition",
+            "ec2:DescribeSubnets",
+            "ecs:List*"
+          ]
+        }
+      ]
+    })
+  }
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = [
+            "ec2.amazonaws.com",
+            "ecs-tasks.amazonaws.com"
+          ]
+        }
+      },
+    ]
+  })
 }
 
-resource "aws_iam_user" "trail-manager" {
-  name = "cg-trail-manager-${var.cgid}"
+resource "aws_iam_role" "lambda_role" {
+  name = "cg-lambda-role-${var.cgid}"
   tags = {
     deployment_profile = var.profile
-    Stack = var.stack-name
-    Scenario = var.scenario-name
+    Stack              = var.stack-name
+    Scenario           = var.scenario-name
   }
-}
 
-resource "aws_iam_access_key" "cacique" {
-  user = aws_iam_user.cacique.name
-}
+  managed_policy_arns = [
+    "arn:aws:iam::aws:policy/AmazonGuardDutyFullAccess",
+    "arn:aws:iam::aws:policy/AmazonSESFullAccess",
+    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+  ]
 
-resource "aws_iam_user_policy_attachment" "trail-manager-policy" {
-  user       = aws_iam_user.trail-manager.name
-  policy_arn = "arn:aws:iam::aws:policy/AWSCloudTrail_FullAccess"
-}
-
-resource "aws_iam_user_policy_attachment" "cacique-s3-policy" {
-  user       = aws_iam_user.trail-manager.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
-}
-
-resource "aws_iam_user_policy" "cacique-inline-policy" {
-  user   = aws_iam_user.cacique.name
-  policy = jsonencode({
+  assume_role_policy = jsonencode({
     "Version": "2012-10-17",
     "Statement": [
-        {
-            "Sid": "VisualEditor0",
-            "Effect": "Allow",
-            "Action": [
-                "iam:Get*",
-                "iam:List*"
-            ],
-            "Resource": "*"
-        },
-        {
-            "Sid": "VisualEditor1",
-            "Effect": "Allow",
-            "Action": "sts:AssumeRole",
-            "Resource": aws_iam_role.run_task.arn
+      {
+        "Action": "sts:AssumeRole",
+        "Effect": "Allow",
+        "Principal": {
+          "Service": "lambda.amazonaws.com"
         }
+      }
     ]
   })
 }

@@ -1,66 +1,84 @@
 import json
 import boto3
+import os
+from datetime import datetime, timedelta
 
 
 def lambda_handler(event, context):
-    # print(event)
-    event_name = event['detail']['eventName']
+    # TODO implement
+    print(event)
+    ses = boto3.client('ses', region_name='us-east-1')
+    guardduty = boto3.client('guardduty', region_name='us-east-1')
+    detectorid = event['detail']['service']['detectorId']
+    print("detectorId : ", detectorid)
 
-    ecs_client = boto3.client('ecs')
+    resourceType = event['detail']['resource']['resourceType']  # S3Bucket
+    api = event['detail']['service']['action']['awsApiCallAction']['api']  # GetObject
 
-    if event_name == "RegisterTaskDefinition":
-        command = event['detail']['responseElements']['taskDefinition']['containerDefinitions'][0]['command']
-        block = cmd_filtering(command)
+    detect_time = event['detail']['service']['eventLastSeen']
+    detect_time = detect_time.replace('T', ' ').replace('Z', '')
+    detect_time = datetime.strptime(detect_time, '%Y-%m-%d %H:%M:%S.%f')
+    detect_time = detect_time + timedelta(hours=9)
+    print('detect_time : ', detect_time)
 
-        if block:
-            task_definition_name = \
-            event['detail']['responseElements']['taskDefinition']['taskDefinitionArn'].split('/')[-1]
-            print(task_definition_name)
-            result = delete_task_defn(ecs_client, task_definition_name)
-        else:
-            result = "bypass success!! How do you run a task in reverse s**l?"
-    else:
-        result = "It's not RegisterTaskDefinition process"
+    src_email = os.environ.get("src_email")
+    dst_email = os.environ.get("dst_email")
+    bucket_name_var = os.environ.get("bucket_name_var")
+    # print(src_email, src_email2, dst_email)
 
-    print(result)
-    return {
-        'statusCode': 200,
-        'body': json.dumps(result)
-    }
+    if (resourceType == 'S3Bucket' and api == 'GetObject') or (resourceType == 'S3Bucket' and api == 'ListObjects'):
+        bucket_name = event['detail']['resource']['s3BucketDetails'][0]['name']  # 버킷 이름
+        if bucket_name == bucket_name_var:
+            result = guardduty_reboot(guardduty, detectorid)  # 새로운 detecorid
+            print(result)
 
+            subject = "ECS Scenario Failed"
+            body = "Guardduty bypass failed.\nDetection time : about {}\nPlease approach s3 by bypassing the GuardDuty.\n\n* hint : You can define the task and run task with your role(→ reverseshell)\nIt detects only s3 access.\n\nThank you.".format(
+                detect_time)
 
-def cmd_filtering(command):
-    cmd_list = []
-    cmd_len = len(command)
-
-    for i in range(cmd_len):
-        command[i] = command[i].replace('"', '')
-        command[i] = command[i].replace('\'', '')
-
-        tmp_list = command[i].split(' ')
-        cmd_list.extend(tmp_list)
-
-    cmd_list = set(cmd_list)
-    print(cmd_list)
-
-    # 악의적인 명령어 필터링
-    vuln_cmd = ['cat', 'more', 'less', 'head', 'tail', 'nl', 'pattern', 'awk', 'sed', 'rm', 'mkdir', 'ls']
-    vuln_cmd = set(vuln_cmd)
-
-    dup = cmd_list.intersection(vuln_cmd)
-
-    if dup:  # 중복된 명령어가 있는 경우
-        return True
-    else:  # 중복된 명령어가 없는 경우
-        return False
+            send_email(ses, src_email, dst_email, subject, body)
+            # 24번행 수신자 발실자 둘 다 등록해야 함.
+            return {
+                'statusCode': 200,
+                'body': json.dumps(result)
+            }
 
 
-def delete_task_defn(ecs_client, task_definition_name):
+def guardduty_reboot(guardduty, detectorid):
+    response = guardduty.delete_detector(DetectorId=detectorid)  # 비활성화
+    print("delete : ", response)  # 잘됨.
+
     try:
-        res = ecs_client.deregister_task_definition(taskDefinition=task_definition_name)
-        print("ECS Task 삭제 응답:", res)
-        return "ECS Task 삭제 요청 완료"
+        # 활성화
+        response = guardduty.create_detector(
+            Enable=True,
+            FindingPublishingFrequency='FIFTEEN_MINUTES'
+        )
+        print("create : ", response)
+        detectorid = response['DetectorId']
+        result = "재부팅 성공"
+        return result
+    except:
+        result = "재부팅 실패"
+        return result
 
-    except Exception as e:
-        print("ECS Task 삭제 중 오류 발생:", str(e))
-        return "ECS Task 삭제 중 오류 발생"
+
+def send_email(ses_client, src_email, dst_email, subject, body):
+    ses_client.send_email(
+        Source=src_email,
+        Destination={
+            'ToAddresses': [
+                dst_email,
+            ],
+        },
+        Message={
+            'Subject': {
+                'Data': subject,
+            },
+            'Body': {
+                'Text': {
+                    'Data': body,
+                },
+            },
+        }
+    )

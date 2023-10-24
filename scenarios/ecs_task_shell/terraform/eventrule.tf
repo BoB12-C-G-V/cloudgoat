@@ -1,18 +1,14 @@
-resource "aws_cloudwatch_event_rule" "ecs_events" {
-  name        = "cg-ecs-events-${var.cgid}"
+resource "aws_cloudwatch_event_rule" "guardduty_events" {
+  name        = "cg-guardduty-events-${var.cgid}"
   description = "Capture ECS API Calls"
 
   event_pattern = jsonencode({
-    "source" : ["aws.ecs"],
-    "detail-type" : ["AWS API Call via CloudTrail"],
-    "detail" : {
-      "eventSource" : ["ecs.amazonaws.com"]
-    }
+    "source" : ["aws.guardduty"],
+    "detail-type" : ["GuardDuty Finding"],
   })
 }
 
 resource "aws_cloudwatch_event_target" "ecs_event_target" {
-  rule      = aws_cloudwatch_event_rule.ecs_events.name
-  target_id = "EcsEventTarget"
-  arn       = aws_lambda_function.ecs_event_handler.arn
+  rule      = aws_cloudwatch_event_rule.guardduty_events.name
+  arn       = aws_lambda_function.guardduty_lambda.arn
 }
