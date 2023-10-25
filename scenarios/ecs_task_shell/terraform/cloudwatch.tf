@@ -13,6 +13,6 @@ resource "aws_cloudwatch_event_target" "ecs_event_target" {
   arn  = aws_lambda_function.guardduty_lambda.arn
 }
 
-resource "aws_guardduty_detector" "default" {
+resource "aws_guardduty_detector" "detector" {
   enable = true
 }
