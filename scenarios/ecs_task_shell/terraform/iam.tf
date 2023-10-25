@@ -8,7 +8,8 @@ resource "aws_iam_role" "ec2_role" {
 
   managed_policy_arns = [
     "arn:aws:iam::aws:policy/AmazonS3FullAccess",
-  "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"]
+    "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+  ]
 
   inline_policy {
     name = "cg-web-role-policy-${var.cgid}"
