@@ -109,7 +109,7 @@ resource "aws_ecs_service" "ssrf_web_service" {
 }
 
 resource "aws_ecs_task_definition" "web_task" {
-  family                   = "cg-ssrf-web-${var.cgid}"
+  family                   = "cg-task-service-ssrf-web"
   network_mode             = "bridge"
   requires_compatibilities = ["EC2"]
   cpu                      = "512"
