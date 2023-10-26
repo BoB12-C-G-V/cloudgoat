@@ -4,9 +4,9 @@
 
 **Size**: `please choose one.`
 
-Difficulty: `please choose one.`
+**Difficulty**: `please choose one.`
 
-Command: `$ ./cloudgoat.py create guardduty_bypass_with_ecs`
+**Command**: `$ ./cloudgoat.py create guardduty_bypass_with_ecs`
 
 ## Scenario Resources
 
@@ -29,6 +29,8 @@ Command: `$ ./cloudgoat.py create guardduty_bypass_with_ecs`
 ---
 
 Scenario starts as a web user.
+
+> **Warning**: If GuardDuty have enabled before creating scenario, It would cause an error.
 
 ## Scenario Goal(s)
 
