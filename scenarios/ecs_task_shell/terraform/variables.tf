@@ -33,7 +33,7 @@ variable "scenario-name" {
 }
 
 variable "user_email" {
-  description = "Once guardduty detect you, a mail will be sent to you"
+  description = "Once guardduty detects attack, a mail will be sent to you"
   type        = string
 }
 

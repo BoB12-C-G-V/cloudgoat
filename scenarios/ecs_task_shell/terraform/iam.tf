@@ -1,3 +1,5 @@
+# Define IAM role for EC2 Instance.
+# Assume that excessive privileges are set for this role.
 resource "aws_iam_role" "ec2_role" {
   name = "cg-web-role-${var.cgid}"
   tags = {
@@ -5,6 +7,7 @@ resource "aws_iam_role" "ec2_role" {
     Stack              = var.stack-name
     Scenario           = var.scenario-name
   }
+
 
   managed_policy_arns = [
     "arn:aws:iam::aws:policy/AmazonS3FullAccess",
@@ -53,6 +56,8 @@ resource "aws_iam_role" "ec2_role" {
   })
 }
 
+# Define Lambda's role for sending mail if GuardDuty detects an attack.
+# The mail will be sent with SES.
 resource "aws_iam_role" "lambda_role" {
   name = "cg-lambda-role-${var.cgid}"
   tags = {
