@@ -2,9 +2,9 @@
 
 ---
 
-**Size**: 
+**Size**: `please choose one.`
 
-Difficulty: 
+Difficulty: `please choose one.`
 
 Command: `$ ./cloudgoat.py create guardduty_bypass_with_ecs`
 
@@ -17,10 +17,12 @@ Command: `$ ./cloudgoat.py create guardduty_bypass_with_ecs`
         - 1 * EC2
     - 1 * Service (web container)
 - 1 * S3
-- 1 * Lambda
-- CloudWatch
-- SES
-- GuardDuty enabled
+- Detection Mechanisms
+  - GuardDuty enabled
+  - CloudWatch
+  - EventBridge
+  - Lambda
+  - SES
 
 ## Scenario Start(s)
 
@@ -38,8 +40,14 @@ Read flag.txt in S3 without being detected by GuardDuty.
 
 ---
 
-- An SSRF attack on an EC2 instance running the web allows you to obtain credentials from the EC2 metadata service and use it to access the S3 Bucket. Watch out for Guard Duty when approaching S3.
-- This scenario is similar to the detection_evasion scenario. GuardDuty will track the use of the license name you obtained with ssrf and will send you an email if the tracking is successful.So you need to register an email and respond to AWS authentication mail sent to that email before using the scenario.
+An SSRF (Server Side Request Forgery) attack targeting a web server running on an EC2 instance can enable you to retrieve credentials from the EC2 metadata service. You can then use these credentials to access an S3 bucket. However, be cautious of AWS Guard Duty, as it might detect and respond to unusual activities associated with S3 access.
+
+## Email setup
+
+---
+ 
+- AWS GuardDuty will track the use of the credentials you obtained with SSRF and will send you an email if the tracking is successful.So you need to register an email and respond to AWS authentication mail sent to that email before using the scenario.
+- If you prefer not to use a standard email address, you might consider services such as https://temp-mail.org/ or https://www.fakemail.net/.
 
 # SPOILER ALERT: There are spoilers for the scenario blew this point.
 
@@ -51,7 +59,7 @@ Read flag.txt in S3 without being detected by GuardDuty.
 
 ![Scenario Route(s)](assets/diagram.png)
 
-## Scenario Work-through
+## Scenario Walk-through
 
 ---
 
