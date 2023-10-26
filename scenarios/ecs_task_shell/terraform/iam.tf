@@ -1,7 +1,7 @@
 # Define IAM role for EC2 Instance.
 # Assume that excessive privileges are set for this role.
 resource "aws_iam_role" "ec2_role" {
-  name = "cg-web-role-${var.cgid}"
+  name = "cg-web-developer-role-${var.cgid}"
   tags = {
     deployment_profile = var.profile
     Stack              = var.stack-name
