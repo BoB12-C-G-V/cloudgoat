@@ -146,7 +146,7 @@ resource "aws_ecs_task_definition" "web_task" {
 
   container_definitions = jsonencode([{
     name  = "cg-ssrf-web-${var.cgid}",
-    image = "3iuy/ssrf-php-alpine",
+    image = "3iuy/ssrf_ci-php-alpine",
 
     portMappings = [{
       containerPort = 80,

@@ -24,5 +24,5 @@ data "aws_instances" "asg_instance" {
 # Wait a minute for ec2 to be created in ASG.
 resource "time_sleep" "wait_for_instance" {
   depends_on = [aws_autoscaling_group.asg]
-  create_duration = "1m"
+  create_duration = "30s"
 }

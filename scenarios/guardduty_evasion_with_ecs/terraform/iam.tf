@@ -10,20 +10,19 @@ resource "aws_iam_role" "ec2_role" {
 
 
   managed_policy_arns = [
-    "arn:aws:iam::aws:policy/AmazonS3FullAccess",
     "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
   ]
 
   inline_policy {
-    name = "cg-web-role-policy-${var.cgid}"
+    name   = "cg-web-role-policy-${var.cgid}"
     policy = jsonencode({
-      "Version" : "2012-10-17",
-      "Statement" : [
+      Version   = "2012-10-17",
+      Statement = [
         {
-          "Sid" : "VisualEditor0",
-          "Effect" : "Allow",
-          "Resource" : "*",
-          "Action" : [
+          Sid      = "VisualEditor0",
+          Effect   = "Allow",
+          Resource = "*",
+          Action   = [
             "iam:PassRole",
             "iam:Get*",
             "ec2:DescribeInstances",
@@ -32,7 +31,9 @@ resource "aws_iam_role" "ec2_role" {
             "ecs:Describe*",
             "ecs:RegisterTaskDefinition",
             "ec2:DescribeSubnets",
-            "ecs:List*"
+            "ecs:List*",
+            "s3:ListBucket",
+            "s3:PutObject"
           ]
         }
       ]
@@ -81,6 +82,32 @@ resource "aws_iam_role" "lambda_role" {
         "Principal" : {
           "Service" : "lambda.amazonaws.com"
         }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy" "cg_web_developer_policy" {
+  name   = "cg-web-developer-policy-${var.cgid}"
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid       = "VisualEditor0",
+        Effect    = "Allow",
+        Resource  = "*",
+        Action    = [
+          "iam:PassRole",
+          "iam:Get*",
+          "ec2:DescribeInstances",
+          "iam:List*",
+          "ecs:RunTask",
+          "ecs:Describe*",
+          "ecs:RegisterTaskDefinition",
+          "ec2:DescribeSubnets",
+          "ecs:List*",
+          "s3:*"
+        ]
       }
     ]
   })

