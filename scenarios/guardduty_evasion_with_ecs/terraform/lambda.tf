@@ -10,7 +10,6 @@ resource "aws_lambda_function" "guardduty_lambda" {
 
   environment {
     variables = {
-      bucket_name_var = aws_s3_bucket.secret-s3-bucket.bucket
       dst_email       = var.user_email
       src_email       = var.user_email
     }

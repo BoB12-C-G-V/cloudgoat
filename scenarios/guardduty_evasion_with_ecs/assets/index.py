@@ -37,13 +37,13 @@ def lambda_handler(event, context):
 
 def handle_s3_event(event, ses, src_email, dst_email, detect_time):
     bucket_name = event['detail']['resource']['s3BucketDetails'][0]['name']
-    bucket_name_var = os.environ.get("bucket_name_var")
 
-    if bucket_name == bucket_name_var:
-        subject = "S3 Incident Detected"
-        body = "An incident related to S3 bucket {} was detected at {}. The bucket name matches the configured bucket name variable. GuardDuty has been rebooted. Please investigate immediately.".format(
-            bucket_name, detect_time)
-        send_email(ses, src_email, dst_email, subject, body)
+    subject = "S3 Incident Detected"
+    body = ("An incident related to S3 bucket {} was detected at {}. The bucket name matches the configured bucket "
+            "name variable. GuardDuty has been rebooted. Please investigate immediately.").format(
+        bucket_name, detect_time)
+
+    send_email(ses, src_email, dst_email, subject, body)
 
 
 def handle_ec2_event(event, ses, src_email, dst_email, detect_time):
