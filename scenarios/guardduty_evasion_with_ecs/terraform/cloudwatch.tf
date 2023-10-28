@@ -1,10 +1,14 @@
 # Define a CloudWatch Event Rule to capture AWS GuardDuty findings
 resource "aws_cloudwatch_event_rule" "guardduty_events" {
   name        = "cg-guardduty-events-${var.cgid}"
-
   event_pattern = jsonencode({
     "source" : ["aws.guardduty"],
     "detail-type" : ["GuardDuty Finding"],
+    "detail": {
+      "type": [
+        "UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration.OutsideAWS",
+      ]
+    }
   })
 }
 

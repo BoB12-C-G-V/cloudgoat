@@ -1,95 +1,82 @@
 import json
 import boto3
 import os
-from datetime import datetime, timedelta
+import time
 
 
 def lambda_handler(event, context):
-    print(event)
-    ses = boto3.client('ses', region_name='us-east-1')
+    # 환경 변수에서 정보 가져오기
+    user_email = os.environ['USER_EMAIL']
+    iam_role_1 = os.environ['IAM_ROLE_1']
+    iam_role_2 = os.environ['IAM_ROLE_2']
+    detector_id = os.environ['GUARDDUTY_DETECTOR_ID']
+    account_id = os.environ['ACCOUNT_ID']
 
-    detect_time = event['detail']['service']['eventLastSeen']
-    detect_time = detect_time.replace('T', ' ').replace('Z', '')
-    detect_time = datetime.strptime(detect_time, '%Y-%m-%d %H:%M:%S.%f')
-    detect_time = detect_time + timedelta(hours=9)
-    print('detect_time : ', detect_time)
+    # 이벤트에서 EC2 인스턴스 ID와 현재 할당된 역할 이름을 추출
+    instance_id = event['detail']['resource']['instanceDetails']['instanceId']
+    current_role_name = event['detail']['resource']['accessKeyDetails']['userName']
 
-    src_email = os.environ.get("src_email")
-    dst_email = os.environ.get("dst_email")
+    # boto3 클라이언트 생성
+    iam = boto3.client('iam')
+    ec2_client = boto3.client('ec2')
+    ses = boto3.client('ses')
+    guardduty = boto3.client('guardduty')
 
-    resourceType = event['detail']['resource']['resourceType']
+    # 새로 할당할 역할을 결정
+    if current_role_name == iam_role_1:
+        new_role = iam_role_2
+    elif current_role_name == iam_role_2:
+        new_role = iam_role_1
+    else:
+        print("현재 역할이 env와 일치하지 않습니다.")
+        return
 
-    guardduty = boto3.client('guardduty', region_name='us-east-1')
-    detectorid = event['detail']['service']['detectorId']
-    result = guardduty_reboot(guardduty, detectorid)
-    print(result)
+    try:
+        # 현재 인스턴스에 할당된 IAM 역할을 해제
+        response = ec2_client.replace_iam_instance_profile_association(
+            IamInstanceProfile={
+                'Arn': f'arn:aws:iam::{account_id}:instance-profile/{new_role}',
+                'Name': new_role
+            },
+            AssociationId=instance_id
+        )
+        print("역할이 성공적으로 변경되었습니다.")
+        print(response)
+    except Exception as e:
+        print("역할 변경 중 오류가 발생했습니다.")
+        print(e)
 
-    if resourceType == 'S3Bucket':
-        handle_s3_event(event, ses, src_email, dst_email, detect_time)
-    elif resourceType == 'EC2Instance':
-        handle_ec2_event(event, ses, src_email, dst_email, detect_time)
+    # 이메일 전송
+    subject = "GuardDuty Alert: Unauthorized Access"
+    body_text = "GuardDuty has detected unauthorized access. \n\n" + json.dumps(event, indent=4)
+    ses.send_email(
+        Source=user_email,
+        Destination={'ToAddresses': [user_email]},
+        Message={
+            'Subject': {'Data': subject},
+            'Body': {'Text': {'Data': body_text}}
+        }
+    )
+
+    # Finding의 상태 업데이트
+    try:
+        # 동적으로 findings 조회
+        findings = guardduty.list_findings(DetectorId=detector_id, MaxResults=10)
+        findings_ids = findings.get('FindingIds', [])
+
+        # 조건을 만족하는 findings의 상태 업데이트
+        if findings_ids:
+            guardduty.update_findings_feedback(
+                DetectorId=detector_id,
+                FindingIds=findings_ids,
+                Feedback='NEW'
+            )
+
+        print("Findings status update success.")
+    except Exception as e:
+        print("Findings 상태 업데이트 실패:", str(e))
 
     return {
         'statusCode': 200,
-        'body': json.dumps('Event handled')
+        'body': 'Processed successfully!'
     }
-
-
-def handle_s3_event(event, ses, src_email, dst_email, detect_time):
-    bucket_name = event['detail']['resource']['s3BucketDetails'][0]['name']
-
-    subject = "S3 Incident Detected"
-    body = ("An incident related to S3 bucket {} was detected at {}. The bucket name matches the configured bucket "
-            "name variable. GuardDuty has been rebooted. Please investigate immediately.").format(
-        bucket_name, detect_time)
-
-    send_email(ses, src_email, dst_email, subject, body)
-
-
-def handle_ec2_event(event, ses, src_email, dst_email, detect_time):
-    instance_id = event['detail']['resource']['instanceDetails']['instanceId']
-
-    refresh_instance_credentials(instance_id)
-
-    subject = "EC2 Incident Detected"
-    body = "An incident related to EC2 instance {} was detected at {}. Please investigate immediately.".format(
-        instance_id, detect_time)
-    send_email(ses, src_email, dst_email, subject, body)
-
-
-def refresh_instance_credentials(instance_id):
-    ec2 = boto3.resource('ec2', region_name='us-east-1')
-    instance = ec2.Instance(instance_id)
-
-    iam_role_name = instance.iam_instance_profile['Arn'].split('/')[-1]
-
-    iam = boto3.client('iam')
-    role = iam.get_role(RoleName=iam_role_name)
-
-    current_policy = role['Role']['AssumeRolePolicyDocument']
-
-    iam.update_assume_role_policy(RoleName=iam_role_name, PolicyDocument=json.dumps(current_policy))
-
-
-def send_email(ses_client, src_email, dst_email, subject, body):
-    ses_client.send_email(
-        Source=src_email,
-        Destination={'ToAddresses': [dst_email]},
-        Message={'Subject': {'Data': subject}, 'Body': {'Text': {'Data': body}}}
-    )
-
-
-def guardduty_reboot(guardduty, detectorid):
-    response = guardduty.delete_detector(DetectorId=detectorid)
-    print("delete : ", response)
-
-    try:
-        response = guardduty.create_detector(Enable=True, FindingPublishingFrequency='FIFTEEN_MINUTES')
-        print("create : ", response)
-        detectorid = response['DetectorId']
-        result = "Reboot successful. New detectorId: {}".format(detectorid)
-        return result
-    except Exception as e:
-        print("Error: ", str(e))
-        result = "Reboot failed"
-        return result

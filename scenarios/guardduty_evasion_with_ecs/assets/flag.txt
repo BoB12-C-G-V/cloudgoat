@@ -1,1 +1,1 @@
-CG{abcdabcd}
+cg-secret-bob12
