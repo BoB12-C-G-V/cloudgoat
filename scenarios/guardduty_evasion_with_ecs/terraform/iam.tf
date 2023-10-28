@@ -65,7 +65,7 @@ resource "aws_iam_role" "s3_access" {
   }
 
   managed_policy_arns = [
-    "arn:aws:iam::aws:policy/service-role/AmazonS3FullAccess"
+    "arn:aws:iam::aws:policy/AmazonS3FullAccess"
   ]
 
   assume_role_policy = jsonencode({
