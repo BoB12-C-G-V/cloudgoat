@@ -12,6 +12,8 @@ resource "aws_lambda_function" "guardduty_lambda" {
       USER_EMAIL            = var.user_email
       IAM_ROLE_1            = aws_iam_role.ec2_role.name
       IAM_ROLE_2            = aws_iam_role.ec2_role_sub.name
+      INSTANCE_PROFILE_1    = aws_iam_instance_profile.instance_profile_1.name
+      INSTANCE_PROFILE_2    = aws_iam_instance_profile.instance_profile_2.name
       GUARDDUTY_DETECTOR_ID = aws_guardduty_detector.detector.id
       ACCOUNT_ID            = data.aws_caller_identity.current.account_id
     }
@@ -34,12 +36,13 @@ resource "null_resource" "lambda_zip" {
   provisioner "local-exec" {
     when    = create
     command = <<EOT
-      if [ -f "../assets/lambda.zip" ]; then
+      cd ../assets/
+      if [ -f "lambda.zip" ]; then
         echo "File exists. Deleting..."
-        rm ../assets/lambda.zip
+        rm lambda.zip
       fi
       echo "Creating lambda.zip..."
-      zip -r ../assets/lambda.zip ../assets/index.py
+      zip -r lambda.zip index.py
     EOT
   }
 }

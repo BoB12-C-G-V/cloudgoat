@@ -223,3 +223,13 @@ resource "aws_iam_policy" "cg_web_developer_policy" {
     ]
   })
 }
+
+resource "aws_iam_instance_profile" "instance_profile_1" {
+  name = "cg-instance-profile-${var.cgid}"
+  role = aws_iam_role.ec2_role.name
+}
+
+resource "aws_iam_instance_profile" "instance_profile_2" {
+  name = "cg-instance-profile-sub-${var.cgid}"
+  role = aws_iam_role.ec2_role_sub.name
+}

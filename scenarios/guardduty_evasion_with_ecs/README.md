@@ -16,10 +16,11 @@
     - 1 * ASG with :
         - 1 * EC2
     - 1 * Service (web container)
-- 1 * S3
+- 2 * S3 (1 * scret, 1 * cloudtrail)
 - Detection Mechanisms
   - GuardDuty enabled
   - CloudWatch
+  - CloudTrail
   - EventBridge
   - Lambda
   - SES
@@ -36,19 +37,19 @@ Scenario starts as a web user.
 
 ---
 
-Read flag.txt in S3 without being detected by GuardDuty.
+Read flag.txt in S3 with avoiding various defense techniques.
 
 ## Summary
 
 ---
 
-An SSRF (Server Side Request Forgery) attack targeting a web server running on an EC2 instance can enable you to retrieve credentials from the EC2 metadata service. You can then use these credentials to access an S3 bucket. However, be cautious of AWS Guard Duty, as it might detect and respond to unusual activities associated with S3 access.
+There is a very vulnerable website operating on AWS. The site's security administrator became frightened and took some web security measures and enabled GuardDuty for EC2's credentials. Take a detour and approach S3 and win the secret string.
 
 ## Email setup
 
 ---
  
-- AWS GuardDuty will track the use of the credentials you obtained with SSRF and will send you an email if the tracking is successful.So you need to register an email and respond to AWS authentication mail sent to that email before using the scenario.
+- If AWS Guard Duty detects your attack in the scenario, we will send you an email. So you need to register an email and respond to AWS authentication mail sent to that email before start.
 - If you prefer not to use a standard email address, you might consider services such as https://temp-mail.org/ or https://www.fakemail.net/.
 
 # SPOILER ALERT: There are spoilers for the scenario blew this point.
@@ -66,7 +67,7 @@ An SSRF (Server Side Request Forgery) attack targeting a web server running on a
 ---
 
 - Attacker accesses the web service of a container inside EC2 managed by ECS.
-- The attacker exploits an SSRF vulnerability in a web service to access the EC2 metadata service and steal temporary credentials.
-- The attacker defines and executes an ECS task with the authority of the web developer to bypass GuardDuty. Perform a reverse shell attack to access the container been created.
+- The attacker exploits vulnerabilities in a web service to access the EC2's credentials.
+- The attacker defines and executes an ECS task with the authority of the web developer to privesc or bypass mitigations. Perform a reverse shell attack to access the container been created.
 - The attacker accesses S3 at the container to bypass GuardDuty detection. Gets the Secret String and exits the scenario.
 
