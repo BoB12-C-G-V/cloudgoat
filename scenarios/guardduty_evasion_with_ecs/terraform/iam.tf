@@ -33,7 +33,6 @@ resource "aws_iam_role" "ec2_role" {
             "ec2:DescribeSubnets",
             "ecs:List*",
             "s3:ListBucket",
-            "s3:PutObject"
           ]
         }
       ]
@@ -50,6 +49,34 @@ resource "aws_iam_role" "ec2_role" {
           Service = [
             "ec2.amazonaws.com",
             "ecs-tasks.amazonaws.com"
+          ]
+        }
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role" "s3_access" {
+  name = "cg-s3-access-role-${var.cgid}"
+  tags = {
+    deployment_profile = var.profile
+    Stack              = var.stack-name
+    Scenario           = var.scenario-name
+  }
+
+  managed_policy_arns = [
+    "arn:aws:iam::aws:policy/service-role/AmazonS3FullAccess"
+  ]
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = [
+            "ec2.amazonaws.com",
           ]
         }
       },
