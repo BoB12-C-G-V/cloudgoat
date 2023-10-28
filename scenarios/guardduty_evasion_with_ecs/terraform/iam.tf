@@ -32,7 +32,7 @@ resource "aws_iam_role" "ec2_role" {
             "ecs:RegisterTaskDefinition",
             "ec2:DescribeSubnets",
             "ecs:List*",
-            "s3:ListBucket",
+            "s3:List*",
           ]
         }
       ]
@@ -76,7 +76,7 @@ resource "aws_iam_role" "s3_access" {
         Effect = "Allow"
         Principal = {
           Service = [
-            "ec2.amazonaws.com",
+            "ecs-tasks.amazonaws.com"
           ]
         }
       },
