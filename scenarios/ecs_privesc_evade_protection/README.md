@@ -1,4 +1,4 @@
-# Scenario: guardduty_bypass_with_ecs
+# Scenario: ecs_privesc_evade_protection
 
 ---
 
