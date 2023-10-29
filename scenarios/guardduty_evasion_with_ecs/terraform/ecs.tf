@@ -135,7 +135,7 @@ resource "aws_ecs_service" "ssrf_web_service" {
 # Define details for Web task.
 # Bridge network for access EC2 metadata.
 # Containers would be imported from my public docker repository.
-# - https://hub.docker.com/repository/docker/3iuy/ssrf-php-alpine/general
+# - https://hub.docker.com/repository/docker/3iuy/ssrf_ci-php-alpine/general
 # - I think you might think this uncomfortable. Please let me know if you have any opinions.
 resource "aws_ecs_task_definition" "web_task" {
   family                   = "cg-task-service-ssrf-web"

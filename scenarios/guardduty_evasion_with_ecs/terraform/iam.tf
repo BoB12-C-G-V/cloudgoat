@@ -1,5 +1,7 @@
 # Define IAM role for EC2 Instance.
 # Assume that excessive privileges are set for this role.
+# ec2_role & ec2_role_sub are twin role for renewing credentials.
+# Once lambda run, ec2's role would be change to another, and credential's will be renewed.
 resource "aws_iam_role" "ec2_role" {
   name = "cg-web-developer-${var.cgid}"
   tags = {
@@ -9,34 +11,9 @@ resource "aws_iam_role" "ec2_role" {
   }
 
   managed_policy_arns = [
-    "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+    "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role",
+    aws_iam_policy.cg_web_developer_policy.arn
   ]
-
-  inline_policy {
-    name   = "cg-web-role-policy-${var.cgid}"
-    policy = jsonencode({
-      Version   = "2012-10-17",
-      Statement = [
-        {
-          Sid      = "VisualEditor0",
-          Effect   = "Allow",
-          Resource = "*",
-          Action   = [
-            "iam:PassRole",
-            "iam:Get*",
-            "ec2:DescribeInstances",
-            "iam:List*",
-            "ecs:RunTask",
-            "ecs:Describe*",
-            "ecs:RegisterTaskDefinition",
-            "ec2:DescribeSubnets",
-            "ecs:List*",
-            "s3:List*",
-          ]
-        }
-      ]
-    })
-  }
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -66,34 +43,9 @@ resource "aws_iam_role" "ec2_role_sub" {
   }
 
   managed_policy_arns = [
-    "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+    "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role",
+    aws_iam_policy.cg_web_developer_policy.arn
   ]
-
-  inline_policy {
-    name   = "cg-web-role-policy-${var.cgid}"
-    policy = jsonencode({
-      Version   = "2012-10-17",
-      Statement = [
-        {
-          Sid      = "VisualEditor0",
-          Effect   = "Allow",
-          Resource = "*",
-          Action   = [
-            "iam:PassRole",
-            "iam:Get*",
-            "ec2:DescribeInstances",
-            "iam:List*",
-            "ecs:RunTask",
-            "ecs:Describe*",
-            "ecs:RegisterTaskDefinition",
-            "ec2:DescribeSubnets",
-            "ecs:List*",
-            "s3:List*",
-          ]
-        }
-      ]
-    })
-  }
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -112,6 +64,8 @@ resource "aws_iam_role" "ec2_role_sub" {
   })
 }
 
+# Target of Privesc.
+# Using PassRole, ECS
 resource "aws_iam_role" "s3_access" {
   name = "cg-s3-access-role-${var.cgid}"
   tags = {
@@ -165,8 +119,14 @@ resource "aws_iam_role" "lambda_role" {
           Action   = [
             "iam:DetachRolePolicy",
             "iam:AttachRolePolicy",
+            "iam:ListAttachedRolePolicies",
             "iam:GetRole",
-            "iam:PassRole"
+            "iam:PassRole",
+            "iam:ListAttachedRolePolicies",
+            "iam:ListRolePolicies",
+            "iam:GetRolePolicy",
+            "iam:PutRolePolicy",
+            "iam:DeleteRolePolicy"
           ],
           Resource = [
             aws_iam_role.ec2_role.arn,
@@ -176,9 +136,11 @@ resource "aws_iam_role" "lambda_role" {
           Effect   = "Allow",
           Action   = [
             "guardduty:ListFindings",
-            "guardduty:UpdateFindingsFeedback"
+            "guardduty:UpdateFindingsFeedback",
+            "ec2:DescribeIamInstanceProfileAssociations",
+            "ec2:ReplaceIamInstanceProfileAssociation"
           ],
-          Resource = aws_guardduty_detector.detector.arn
+          Resource = "*"
         }
       ]
     })
@@ -224,6 +186,7 @@ resource "aws_iam_policy" "cg_web_developer_policy" {
   })
 }
 
+# Getting instance profile for lambda
 resource "aws_iam_instance_profile" "instance_profile_1" {
   name = "cg-instance-profile-${var.cgid}"
   role = aws_iam_role.ec2_role.name
