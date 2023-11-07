@@ -50,4 +50,4 @@ Find the manager's key and access the ssm parameter store with a vulnerable perm
 5. Execute the created job.
 6. Extract the value of “flag”(parameter name) from the ssm parameter store.
 
-**A cheat sheet for this route is available [here](cheet_sheet.md)**
+**A cheat sheet for this route is available [here](cheat_sheet.md)**
