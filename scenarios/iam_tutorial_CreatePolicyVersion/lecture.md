@@ -10,11 +10,16 @@
 ### Summary
 
 - player는 List* , GetPolicyVersion , CreatePolicyVersion의 권한을 가지고 있음
-- CreatePolicyVersion 권한을 통해 자신에게 정책을 할당하여 admin권한으로 상승하는 상황을 연
+- CreatePolicyVersion 권한을 통해 자신에게 정책을 할당하여 admin권한으로 상승하는 상황을 연출
+
+
+
+### 실행 명령어
+`./cloudgoat.py create iam_tutorial_CreatePolicyVersion`
 
 이번 시나리오의 학습목표는 IAM 최소권한 원칙의 이해와 위험한 권한의 이해입니다.
-
 구축된 환경에서는 단 하나의 IAM만 주어집니다.
+
 우선 IAM에게 할당된 권한부터 확인해야 할 것 입니다.
 ```aws iam list-attached-user-policies --user-name [Profile Name] --profile player```
 해당 명령어를 통해 특정 IAM에게 할당된 정책을 확인할 수 있습니다.
@@ -32,7 +37,7 @@ IAM에게 할당된 정책은 수정이 가능하며 마치 Git처럼 버전관�
 그런데 위 명령어에서는 policy arn을 입력해야하는데 ```list-attached-user-policies```명령어로는 알 수가 없습니다.
 따라서 다음과 같은 명령어가 선행되어야 합니다.
 ```aws iam list-policy-versions --policy-arn <arn>
-aws iam get-policy-version --policy-arn <arn> --version-id <VERSION_X>```
+aws iam get-policy-version --policy-arn <arn> --version-id <VERSION_X>``
 
 
 

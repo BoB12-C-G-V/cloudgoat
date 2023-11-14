@@ -1,8 +1,8 @@
 
 resource "aws_iam_user" "player" {
-  name = "player-${var.lecture_id}"
+  name = "player"
   tags = {
-    Name     = "player-${var.lecture_id}"
+    Name     = "player"
     Stack    = "${var.stack-name}"
     Scenario = "${var.scenario-name}"
   }
