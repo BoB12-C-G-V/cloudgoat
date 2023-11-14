@@ -31,8 +31,8 @@ resource "aws_lambda_function" "add_tag" {
   runtime          = "python3.11"
   environment {
     variables = {
-      AWS_ACCESS_KEY_ID = aws_iam_access_key.manager_access_key.id,
-      AWS_SECRET_ACCESS_KEY = aws_iam_access_key.manager_access_key.secret
+      access_key = aws_iam_access_key.manager_access_key.id,
+      secret_key = aws_iam_access_key.manager_access_key.secret
     }
   }
 }
