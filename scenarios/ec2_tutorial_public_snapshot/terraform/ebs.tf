@@ -1,6 +1,6 @@
 # EBS 볼륨 생성
 resource "aws_ebs_volume" "example_ebs_volume" {
-  availability_zone = "ap-northeast-2a"
+  availability_zone = "us-east-1"
   size              = 1 # 볼륨 크기 (GB)
   tags = {
     Name        = "Hello IAM"

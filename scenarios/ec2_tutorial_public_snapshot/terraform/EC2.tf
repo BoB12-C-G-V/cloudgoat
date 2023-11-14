@@ -1,7 +1,6 @@
 resource "aws_instance" "my_instance" {
   ami               = var.ami # 사용할 AMI ID를 지정하세요.
   instance_type     = "t2.micro"
-  availability_zone = "ap-northeast-2a"
 
   #EBS볼륨을 마운트 후 프로비저닝 실시
   depends_on = [aws_ebs_volume.example_ebs_volume]
@@ -37,12 +36,7 @@ resource "aws_instance" "my_instance" {
 }
 
 
-#SSH Key Pair 생성
-resource "aws_key_pair" "bob_key_pair" {
-  key_name = "bob_key_pair" # SSH 키 이름
-  # public_key = file("${var.ssh-public-key-for-ec2}") # 공개 키 파일의 경로를 지정하세요.
-  public_key = file("~/.ssh/id_rsa.pub") # 공개 키 파일의 경로를 지정하세요.
-}
+
 
 #EBS연결
 resource "aws_volume_attachment" "ebs_att" {

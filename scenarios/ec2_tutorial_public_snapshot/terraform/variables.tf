@@ -32,15 +32,15 @@ variable "scenario-name" {
 }
 
 variable "ami" {
-  default = "ami-0f52ba4acb7f8f76a"
+  default = "ami-0e01e66dacaf1454d"
 }
 
 #SSH Public Key
 variable "ssh-public-key-for-ec2" {
-  default = "../bob12thcgv.pub"
+  default = "../cloudgoat.pub"
 }
 
 #SSH Private Key
 variable "ssh-private-key-for-ec2" {
-  default = "../bob12thcgv"
+  default = "../cloudgoat"
 }

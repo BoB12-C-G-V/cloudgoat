@@ -42,3 +42,10 @@ resource "aws_s3_bucket_policy" "public_test_policy" {
     ]
 })
 }
+
+
+resource "aws_s3_object" "flag_file" {
+  bucket = aws_s3_bucket.anyone_bucket.id
+  key    = "flag.txt"
+  source = "./test.txt"
+}

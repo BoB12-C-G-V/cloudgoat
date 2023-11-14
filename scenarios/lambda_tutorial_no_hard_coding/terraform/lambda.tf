@@ -29,6 +29,12 @@ resource "aws_lambda_function" "add_tag" {
   handler          = "tagging.lambda_handler"
   source_code_hash = data.archive_file.target_lambda.output_base64sha256
   runtime          = "python3.11"
+  environment {
+    variables = {
+      AWS_ACCESS_KEY_ID = aws_iam_access_key.manager_access_key.id,
+      AWS_SECRET_ACCESS_KEY = aws_iam_access_key.manager_access_key.secret
+    }
+  }
 }
 
 

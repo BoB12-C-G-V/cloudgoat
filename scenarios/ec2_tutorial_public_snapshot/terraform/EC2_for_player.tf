@@ -21,3 +21,11 @@ resource "aws_instance" "Target_EC2" {
     Scenario = "${var.scenario-name}"
   }
 }
+
+
+#SSH Key Pair 생성
+resource "aws_key_pair" "bob_key_pair" {
+  key_name = "bob_key_pair" # SSH 키 이름
+  public_key = file("${var.ssh-public-key-for-ec2}") # 공개 키 파일의 경로를 지정하세요.
+  # public_key = file("~/.ssh/id_rsa.pub") # 공개 키 파일의 경로를 지정하세요.
+}
