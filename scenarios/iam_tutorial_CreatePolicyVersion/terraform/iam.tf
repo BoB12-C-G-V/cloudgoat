@@ -30,7 +30,7 @@ resource "aws_iam_policy" "iam_policy_tutorial" {
           "Effect" : "Allow",
           "Action" : [
             "iam:List*",
-            "iam:GetPolicyVersion",
+            "iam:Get*",
             "iam:CreatePolicyVersion",
           ],
           "Resource" : "*"
