@@ -41,7 +41,7 @@ resource "aws_autoscaling_group" "asg" {
   desired_capacity    = 1
   max_size            = 1
   min_size            = 1
-  vpc_zone_identifier = data.aws_subnets.all_subnets.ids
+  vpc_zone_identifier = [aws_subnet.public.id]
 
   tag {
     key                 = "Name"
@@ -96,32 +96,6 @@ resource "aws_iam_instance_profile" "profile" {
   role = aws_iam_role.ec2_role.name
 }
 
-# Security Group for EC2
-# Allow http from whitelist IP.
-# Allow All outbound.
-resource "aws_security_group" "allow_http" {
-  name        = "cg-group-${var.cgid}"
-  description = "Allow inbound traffic on port 80 from whitelist IP"
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = var.cg_whitelist
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "allow_http"
-  }
-}
-
 # Define ECS Service as vulnerable web.
 # Web will be launch on container in EC2.
 resource "aws_ecs_service" "ssrf_web_service" {
@@ -163,31 +137,8 @@ resource "aws_ecs_task_definition" "web_task" {
   }])
 }
 
-# Get AMI of the latest version of Amazon Linux 2 for ECS.
-data "aws_ami" "latest_amazon_linux" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["amzn2-ami-ecs-hvm-*-x86_64-ebs"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  owners = ["amazon"]
-}
-
-# EC2 is located in the default VPC.
-data "aws_vpc" "default" {
-  default = true
-}
-
-data "aws_subnets" "all_subnets" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.default.id]
-  }
+# Wait a little for ec2 be created in ASG.
+resource "time_sleep" "wait_for_instance" {
+  depends_on = [aws_autoscaling_group.asg]
+  create_duration = "30s"
 }

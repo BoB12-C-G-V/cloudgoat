@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 1.6"
+  required_version = ">= 1.5"
 
   required_providers {
     aws = {
@@ -9,10 +9,6 @@ terraform {
     archive = {
       source  = "hashicorp/archive"
       version = ">= 2.4"
-    }
-    time = {
-      source  = "hashicorp/time"
-      version = ">= 0.9"
     }
   }
 }
