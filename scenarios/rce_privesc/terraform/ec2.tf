@@ -1,6 +1,6 @@
 #IAM Role
-resource "aws_iam_role" "aws_admin_role" {
-  name = "aws_admin_role"
+resource "aws_iam_role" "aws_ssm_role" {
+  name = "aws_ssm_role"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -20,14 +20,14 @@ EOF
 
 #IAM Role Policy Attachment
 resource "aws_iam_role_policy_attachment" "RCE-Privesc-Role-policy-attachment-s3" {
-  role = "${aws_iam_role.aws_admin_role.name}"
+  role = "${aws_iam_role.aws_ssm_role.name}"
   policy_arn = "${data.aws_iam_policy.aws-admin-access.arn}"
 }
 
 #IAM Instance Profile
 resource "aws_iam_instance_profile" "cg-ec2-instance-profile" {
   name = "cg-ec2-instance-profile-${var.cgid}"
-  role = "${aws_iam_role.aws_admin_role.name}"
+  role = "${aws_iam_role.aws_ssm_role.name}"
 }
 
 #Security Groups
